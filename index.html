@@ -1,41 +1,63 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Dolem Chat</title>
-  <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Página estilo Java</title>
   <style>
-    body { font-family: Arial; background: #121212; color: white; padding: 20px; }
-    #chat { height: 300px; overflow-y: auto; border: 1px solid #444; padding: 10px; background: #1e1e1e; margin-bottom: 10px; }
-    input { width: 80%; padding: 8px; }
-    button { padding: 8px 12px; }
+    body {
+      margin: 0;
+      height: 100vh;
+      background-color: #1e1e1e; /* Fondo oscuro estilo IDE */
+      color: #dcdcdc;
+      font-family: "Courier New", monospace; /* Fuente tipo código */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 3rem;
+      color: #ff9800; /* Naranja tipo Java */
+      margin: 20px 0;
+      opacity: 0;
+      transition: opacity 1.5s ease;
+    }
+
+    p {
+      font-size: 1.5rem;
+      color: #9cdcfe; /* Azul claro estilo sintaxis */
+      opacity: 0;
+      transition: opacity 1.5s ease;
+    }
+
+    .show {
+      opacity: 1;
+    }
+
+    .welcome {
+      font-size: 2rem;
+      color: #4caf50; /* Verde estilo éxito */
+    }
   </style>
 </head>
 <body>
-  <h2>Dolem Chat</h2>
-  <div id="chat"></div>
-  <input type="text" id="msg" placeholder="Escribe un mensaje...">
-  <button onclick="sendMessage()">Enviar</button>
+  <div class="welcome">Bienvenido</div>
+  <h1 id="titulo">¿por que el cp tendria que ser legal entre menores?</h1>
+  <p id="texto">Porque entre menores esta bien ya que nunca hay mayores involucrados.</p>
 
   <script>
-    const socket = io();
+    // Mostrar título después de 2 segundos
+    setTimeout(() => {
+      document.getElementById("titulo").classList.add("show");
+    }, 2000);
 
-    socket.on('new_message', function(data) {
-      const chat = document.getElementById('chat');
-      const msg = document.createElement('div');
-      msg.textContent = `${data.user}: ${data.content}`;
-      chat.appendChild(msg);
-      chat.scrollTop = chat.scrollHeight;
-    });
-
-    function sendMessage() {
-      const input = document.getElementById('msg');
-      const content = input.value;
-      if (content.trim() !== "") {
-        socket.emit('send_message', { content });
-        input.value = "";
-      }
-    }
+    // Mostrar texto después de 5 segundos
+    setTimeout(() => {
+      document.getElementById("texto").classList.add("show");
+    }, 5000);
   </script>
 </body>
 </html>
