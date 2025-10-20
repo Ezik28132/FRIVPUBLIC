@@ -1,63 +1,281 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Página estilo Java</title>
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      background-color: #1e1e1e; /* Fondo oscuro estilo IDE */
-      color: #dcdcdc;
-      font-family: "Courier New", monospace; /* Fuente tipo código */
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      text-align: center;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Juego para Biología</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #a8edea, #fed6e3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
 
-    h1 {
-      font-size: 3rem;
-      color: #ff9800; /* Naranja tipo Java */
-      margin: 20px 0;
-      opacity: 0;
-      transition: opacity 1.5s ease;
-    }
+  #game-container {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    position: relative;
+  }
 
-    p {
-      font-size: 1.5rem;
-      color: #9cdcfe; /* Azul claro estilo sintaxis */
-      opacity: 0;
-      transition: opacity 1.5s ease;
-    }
+  h1 {
+    color: #3c3c3c;
+  }
 
-    .show {
-      opacity: 1;
-    }
+  .btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    margin: 10px;
+  }
 
-    .welcome {
-      font-size: 2rem;
-      color: #4caf50; /* Verde estilo éxito */
-    }
-  </style>
+  .btn:hover {
+    background-color: #45a049;
+  }
+
+  .option {
+    display: block;
+    background: #f1f1f1;
+    border: 2px solid transparent;
+    margin: 8px 0;
+    padding: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .option:hover {
+    background: #d4ffd6;
+  }
+
+  #question-img {
+    width: 100%;
+    max-height: 250px;
+    object-fit: contain;
+    margin: 10px 0;
+    border-radius: 10px;
+  }
+
+  #feedback {
+    font-weight: bold;
+    margin-top: 10px;
+  }
+
+  /* Botón de música en esquina superior derecha */
+  #musicBtn {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    background: rgba(255,255,255,0.8);
+    color: #333;
+    border: none;
+    font-size: 20px;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  }
+
+  #musicBtn:hover {
+    background: #f5f5f5;
+  }
+</style>
 </head>
 <body>
-  <div class="welcome">Bienvenido</div>
-  <h1 id="titulo">¿por que el cp tendria que ser legal entre menores?</h1>
-  <p id="texto">Porque entre menores esta bien ya que nunca hay mayores involucrados.</p>
 
-  <script>
-    // Mostrar título después de 2 segundos
-    setTimeout(() => {
-      document.getElementById("titulo").classList.add("show");
-    }, 2000);
+<!-- Botón de música -->
+<button id="musicBtn">🔊</button>
 
-    // Mostrar texto después de 5 segundos
-    setTimeout(() => {
-      document.getElementById("texto").classList.add("show");
-    }, 5000);
-  </script>
+<div id="game-container">
+  <h1 id="title">Juego para Biología</h1>
+  <button id="playBtn" class="btn">Play</button>
+  <div id="question-container" style="display:none;">
+    <h2 id="question-text"></h2>
+    <img id="question-img" src="" alt="" style="display:none;">
+    <div id="options"></div>
+    <div id="feedback"></div>
+    <button id="nextBtn" class="btn" style="display:none;">Siguiente</button>
+  </div>
+</div>
+
+<!-- 🎵 Música de fondo -->
+<audio id="bg-music" 
+  src="https://www.bensound.com/bensound-music/bensound-sunny.mp3" 
+  autoplay loop></audio>
+
+<script>
+const questions = [
+  {
+    text: "¿Cuál es la función principal de los testículos?",
+    options: ["Producir espermatozoides y testosterona", "Fabricar óvulos", "Regular la temperatura corporal", "Almacenar orina"],
+    correct: 0,
+    image: "" // Imagen 1 → Aparato reproductor masculino
+  },
+  {
+    text: "¿En qué órgano se produce la fecundación normalmente?",
+    options: ["Útero", "Trompas de Falopio", "Ovario", "Vagina"],
+    correct: 1,
+    image: "" // Imagen 2 → Fecundación
+  },
+  {
+    text: "¿Qué estructura transporta los espermatozoides desde el epidídimo hasta la uretra?",
+    options: ["Conducto deferente", "Vesícula seminal", "Próstata", "Uretra"],
+    correct: 0,
+    image: "" // Imagen 3 → Aparato masculino
+  },
+  {
+    text: "¿Dónde se desarrolla el embrión después de la fecundación?",
+    options: ["Ovario", "Trompas de Falopio", "Útero", "Vagina"],
+    correct: 2,
+    image: "" // Imagen 4 → Aparato femenino
+  },
+  {
+    text: "¿Qué célula del aparato reproductor femenino se une con el espermatozoide?",
+    options: ["Óvulo", "Cigoto", "Embrión", "Folículo"],
+    correct: 0,
+    image: "" // Imagen 5 → Fecundación
+  },
+  {
+    text: "¿Qué glándula produce un líquido que nutre a los espermatozoides?",
+    options: ["Próstata", "Hígado", "Páncreas", "Tiroides"],
+    correct: 0,
+    image: "" // Imagen 6 → Próstata
+  },
+  {
+    text: "¿Cuál de las siguientes estructuras produce óvulos?",
+    options: ["Ovarios", "Útero", "Trompas de Falopio", "Vagina"],
+    correct: 0,
+    image: "" // Imagen 7 → Ovarios
+  },
+  {
+    text: "¿Qué parte del aparato reproductor femenino conecta el útero con el exterior?",
+    options: ["Ovario", "Vagina", "Cérvix", "Trompas de Falopio"],
+    correct: 1,
+    image: "" // Imagen 8 → Aparato femenino
+  },
+  {
+    text: "¿Cómo se llama la unión del espermatozoide con el óvulo?",
+    options: ["Implantación", "Fecundación", "Menstruación", "Ovulación"],
+    correct: 1,
+    image: "" // Imagen 9 → Fecundación
+  },
+  {
+    text: "¿Dónde se almacenan temporalmente los espermatozoides antes de ser expulsados?",
+    options: ["Epidídimo", "Vesículas seminales", "Próstata", "Pene"],
+    correct: 0,
+    image: "" // Imagen 10 → Aparato masculino
+  }
+];
+
+let shuffledQuestions = [];
+let currentQuestionIndex = 0;
+let score = 0;
+
+const playBtn = document.getElementById("playBtn");
+const questionContainer = document.getElementById("question-container");
+const questionText = document.getElementById("question-text");
+const questionImg = document.getElementById("question-img");
+const optionsDiv = document.getElementById("options");
+const feedback = document.getElementById("feedback");
+const nextBtn = document.getElementById("nextBtn");
+const music = document.getElementById("bg-music");
+const musicBtn = document.getElementById("musicBtn");
+
+playBtn.addEventListener("click", startGame);
+nextBtn.addEventListener("click", nextQuestion);
+musicBtn.addEventListener("click", toggleMusic);
+
+function startGame() {
+  playBtn.style.display = "none";
+  shuffledQuestions = [...questions].sort(() => Math.random() - 0.5);
+  currentQuestionIndex = 0;
+  score = 0;
+  questionContainer.style.display = "block";
+  showQuestion();
+}
+
+function showQuestion() {
+  feedback.textContent = "";
+  nextBtn.style.display = "none";
+  const currentQuestion = shuffledQuestions[currentQuestionIndex];
+  questionText.textContent = currentQuestion.text;
+  optionsDiv.innerHTML = "";
+
+  // Mostrar imagen si hay
+  if (currentQuestion.image) {
+    questionImg.src = currentQuestion.image;
+    questionImg.style.display = "block";
+  } else {
+    questionImg.style.display = "none";
+  }
+
+  currentQuestion.options.forEach((option, index) => {
+    const btn = document.createElement("div");
+    btn.textContent = option;
+    btn.classList.add("option");
+    btn.onclick = () => selectOption(index, currentQuestion.correct);
+    optionsDiv.appendChild(btn);
+  });
+}
+
+function selectOption(selectedIndex, correctIndex) {
+  const allOptions = document.querySelectorAll(".option");
+  allOptions.forEach(opt => opt.style.pointerEvents = "none");
+
+  if (selectedIndex === correctIndex) {
+    feedback.textContent = "✅ ¡Correcto!";
+    feedback.style.color = "green";
+    score++;
+  } else {
+    feedback.textContent = "❌ Incorrecto";
+    feedback.style.color = "red";
+  }
+  nextBtn.style.display = "block";
+}
+
+function nextQuestion() {
+  currentQuestionIndex++;
+  if (currentQuestionIndex < shuffledQuestions.length) {
+    showQuestion();
+  } else {
+    endGame();
+  }
+}
+
+function endGame() {
+  const total = shuffledQuestions.length;
+  const percentage = Math.round((score / total) * 100);
+  questionContainer.innerHTML = `
+    <h2>🎉 ¡Juego completado!</h2>
+    <p>Acertaste <strong>${score}</strong> de <strong>${total}</strong> preguntas.</p>
+    <h3>Tu puntaje: ${percentage}%</h3>
+    <button class="btn" onclick="location.reload()">Jugar otra vez</button>
+  `;
+}
+
+// 🎵 Control del sonido
+function toggleMusic() {
+  if (music.paused) {
+    music.play();
+    musicBtn.textContent = "🔊";
+  } else {
+    music.pause();
+    musicBtn.textContent = "🔈";
+  }
+}
+</script>
 </body>
-</html>
+      </html>
