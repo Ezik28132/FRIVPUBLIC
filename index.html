@@ -73,7 +73,6 @@
     margin-top: 10px;
   }
 
-  /* Botón de música en esquina superior derecha */
   #musicBtn {
     position: fixed;
     top: 15px;
@@ -92,6 +91,34 @@
   #musicBtn:hover {
     background: #f5f5f5;
   }
+
+  input {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    width: 80%;
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+  }
+
+  th, td {
+    border-bottom: 1px solid #ccc;
+    padding: 8px;
+  }
+
+  th {
+    background-color: #f5f5f5;
+  }
+
+  .leaderboard {
+    text-align: left;
+  }
 </style>
 </head>
 <body>
@@ -101,7 +128,15 @@
 
 <div id="game-container">
   <h1 id="title">Juego para Biología</h1>
-  <button id="playBtn" class="btn">Play</button>
+
+  <!-- Pantalla de inicio -->
+  <div id="start-screen">
+    <input type="text" id="username" placeholder="Ingresa tu nombre">
+    <br>
+    <button id="startBtn" class="btn">Comenzar</button>
+  </div>
+
+  <!-- Contenedor de preguntas -->
   <div id="question-container" style="display:none;">
     <h2 id="question-text"></h2>
     <img id="question-img" src="" alt="" style="display:none;">
@@ -109,6 +144,9 @@
     <div id="feedback"></div>
     <button id="nextBtn" class="btn" style="display:none;">Siguiente</button>
   </div>
+
+  <!-- Tabla de puntuaciones -->
+  <div id="leaderboard" class="leaderboard" style="display:none;"></div>
 </div>
 
 <!-- 🎵 Música de fondo -->
@@ -118,92 +156,54 @@
 
 <script>
 const questions = [
-  {
-    text: "¿Cuál es la función principal de los testículos?",
-    options: ["Producir espermatozoides y testosterona", "Fabricar óvulos", "Regular la temperatura corporal", "Almacenar orina"],
-    correct: 0,
-    image: "" // Imagen 1 → Aparato reproductor masculino
-  },
-  {
-    text: "¿En qué órgano se produce la fecundación normalmente?",
-    options: ["Útero", "Trompas de Falopio", "Ovario", "Vagina"],
-    correct: 1,
-    image: "" // Imagen 2 → Fecundación
-  },
-  {
-    text: "¿Qué estructura transporta los espermatozoides desde el epidídimo hasta la uretra?",
-    options: ["Conducto deferente", "Vesícula seminal", "Próstata", "Uretra"],
-    correct: 0,
-    image: "" // Imagen 3 → Aparato masculino
-  },
-  {
-    text: "¿Dónde se desarrolla el embrión después de la fecundación?",
-    options: ["Ovario", "Trompas de Falopio", "Útero", "Vagina"],
-    correct: 2,
-    image: "" // Imagen 4 → Aparato femenino
-  },
-  {
-    text: "¿Qué célula del aparato reproductor femenino se une con el espermatozoide?",
-    options: ["Óvulo", "Cigoto", "Embrión", "Folículo"],
-    correct: 0,
-    image: "" // Imagen 5 → Fecundación
-  },
-  {
-    text: "¿Qué glándula produce un líquido que nutre a los espermatozoides?",
-    options: ["Próstata", "Hígado", "Páncreas", "Tiroides"],
-    correct: 0,
-    image: "" // Imagen 6 → Próstata
-  },
-  {
-    text: "¿Cuál de las siguientes estructuras produce óvulos?",
-    options: ["Ovarios", "Útero", "Trompas de Falopio", "Vagina"],
-    correct: 0,
-    image: "" // Imagen 7 → Ovarios
-  },
-  {
-    text: "¿Qué parte del aparato reproductor femenino conecta el útero con el exterior?",
-    options: ["Ovario", "Vagina", "Cérvix", "Trompas de Falopio"],
-    correct: 1,
-    image: "" // Imagen 8 → Aparato femenino
-  },
-  {
-    text: "¿Cómo se llama la unión del espermatozoide con el óvulo?",
-    options: ["Implantación", "Fecundación", "Menstruación", "Ovulación"],
-    correct: 1,
-    image: "" // Imagen 9 → Fecundación
-  },
-  {
-    text: "¿Dónde se almacenan temporalmente los espermatozoides antes de ser expulsados?",
-    options: ["Epidídimo", "Vesículas seminales", "Próstata", "Pene"],
-    correct: 0,
-    image: "" // Imagen 10 → Aparato masculino
-  }
+  { text: "¿Cuál es la función principal de los testículos?", options: ["Producir espermatozoides y testosterona", "Fabricar óvulos", "Regular la temperatura corporal", "Almacenar orina"], correct: 0, image: "" },
+  { text: "¿En qué órgano se produce la fecundación normalmente?", options: ["Útero", "Trompas de Falopio", "Ovario", "Vagina"], correct: 1, image: "" },
+  { text: "¿Qué estructura transporta los espermatozoides desde el epidídimo hasta la uretra?", options: ["Conducto deferente", "Vesícula seminal", "Próstata", "Uretra"], correct: 0, image: "" },
+  { text: "¿Dónde se desarrolla el embrión después de la fecundación?", options: ["Ovario", "Trompas de Falopio", "Útero", "Vagina"], correct: 2, image: "" },
+  { text: "¿Qué célula del aparato reproductor femenino se une con el espermatozoide?", options: ["Óvulo", "Cigoto", "Embrión", "Folículo"], correct: 0, image: "" },
+  { text: "¿Qué glándula produce un líquido que nutre a los espermatozoides?", options: ["Próstata", "Hígado", "Páncreas", "Tiroides"], correct: 0, image: "" },
+  { text: "¿Cuál de las siguientes estructuras produce óvulos?", options: ["Ovarios", "Útero", "Trompas de Falopio", "Vagina"], correct: 0, image: "" },
+  { text: "¿Qué parte del aparato reproductor femenino conecta el útero con el exterior?", options: ["Ovario", "Vagina", "Cérvix", "Trompas de Falopio"], correct: 1, image: "" },
+  { text: "¿Cómo se llama la unión del espermatozoide con el óvulo?", options: ["Implantación", "Fecundación", "Menstruación", "Ovulación"], correct: 1, image: "" },
+  { text: "¿Dónde se almacenan temporalmente los espermatozoides antes de ser expulsados?", options: ["Epidídimo", "Vesículas seminales", "Próstata", "Pene"], correct: 0, image: "" }
 ];
 
 let shuffledQuestions = [];
 let currentQuestionIndex = 0;
 let score = 0;
+let username = "";
+let startTime = 0;
+let endTime = 0;
 
-const playBtn = document.getElementById("playBtn");
+const startScreen = document.getElementById("start-screen");
+const startBtn = document.getElementById("startBtn");
+const usernameInput = document.getElementById("username");
 const questionContainer = document.getElementById("question-container");
 const questionText = document.getElementById("question-text");
 const questionImg = document.getElementById("question-img");
 const optionsDiv = document.getElementById("options");
 const feedback = document.getElementById("feedback");
 const nextBtn = document.getElementById("nextBtn");
+const leaderboardDiv = document.getElementById("leaderboard");
 const music = document.getElementById("bg-music");
 const musicBtn = document.getElementById("musicBtn");
 
-playBtn.addEventListener("click", startGame);
+startBtn.addEventListener("click", startGame);
 nextBtn.addEventListener("click", nextQuestion);
 musicBtn.addEventListener("click", toggleMusic);
 
 function startGame() {
-  playBtn.style.display = "none";
+  username = usernameInput.value.trim();
+  if (username === "") {
+    alert("Por favor ingresa tu nombre antes de comenzar.");
+    return;
+  }
+  startScreen.style.display = "none";
+  questionContainer.style.display = "block";
   shuffledQuestions = [...questions].sort(() => Math.random() - 0.5);
   currentQuestionIndex = 0;
   score = 0;
-  questionContainer.style.display = "block";
+  startTime = Date.now();
   showQuestion();
 }
 
@@ -214,7 +214,6 @@ function showQuestion() {
   questionText.textContent = currentQuestion.text;
   optionsDiv.innerHTML = "";
 
-  // Mostrar imagen si hay
   if (currentQuestion.image) {
     questionImg.src = currentQuestion.image;
     questionImg.style.display = "block";
@@ -256,17 +255,47 @@ function nextQuestion() {
 }
 
 function endGame() {
+  endTime = Date.now();
   const total = shuffledQuestions.length;
   const percentage = Math.round((score / total) * 100);
-  questionContainer.innerHTML = `
-    <h2>🎉 ¡Juego completado!</h2>
-    <p>Acertaste <strong>${score}</strong> de <strong>${total}</strong> preguntas.</p>
-    <h3>Tu puntaje: ${percentage}%</h3>
-    <button class="btn" onclick="location.reload()">Jugar otra vez</button>
-  `;
+  const timeTaken = ((endTime - startTime) / 1000).toFixed(1);
+
+  saveScore(username, score, percentage, timeTaken);
+  showLeaderboard();
 }
 
-// 🎵 Control del sonido
+// Guardar puntuación en localStorage
+function saveScore(name, score, percentage, time) {
+  let leaderboard = JSON.parse(localStorage.getItem("bioLeaderboard")) || [];
+  leaderboard.push({ name, score, percentage, time });
+  leaderboard.sort((a, b) => b.score - a.score || a.time - b.time);
+  leaderboard = leaderboard.slice(0, 5); // Top 5
+  localStorage.setItem("bioLeaderboard", JSON.stringify(leaderboard));
+}
+
+// Mostrar tabla de posiciones
+function showLeaderboard() {
+  const leaderboard = JSON.parse(localStorage.getItem("bioLeaderboard")) || [];
+  questionContainer.style.display = "none";
+  leaderboardDiv.style.display = "block";
+
+  let table = `
+    <h2>🏁 Resultados finales</h2>
+    <p>${username}, acertaste <strong>${score}</strong> de <strong>${questions.length}</strong> preguntas.</p>
+    <h3>Puntaje: ${Math.round((score / questions.length) * 100)}%</h3>
+    <p>Tiempo total: ${((endTime - startTime) / 1000).toFixed(1)} segundos</p>
+    <h3>🏆 Leaderboard</h3>
+    <table>
+      <tr><th>Jugador</th><th>Puntaje</th><th>%</th><th>Tiempo (s)</th></tr>
+  `;
+  leaderboard.forEach(p => {
+    table += `<tr><td>${p.name}</td><td>${p.score}</td><td>${p.percentage}%</td><td>${p.time}</td></tr>`;
+  });
+  table += `</table><button class="btn" onclick="location.reload()">Jugar otra vez</button>`;
+  leaderboardDiv.innerHTML = table;
+}
+
+// 🎵 Control de sonido
 function toggleMusic() {
   if (music.paused) {
     music.play();
@@ -278,4 +307,4 @@ function toggleMusic() {
 }
 </script>
 </body>
-      </html>
+</html>
