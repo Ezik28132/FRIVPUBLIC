@@ -13,6 +13,25 @@
     align-items: center;
     height: 100vh;
     margin: 0;
+    overflow: hidden;
+  }
+
+  #transition-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #7fd1ae, #86a8e7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    font-size: 2.5em;
+    color: white;
+    font-weight: bold;
+    opacity: 1;
+    transition: opacity 1s ease;
   }
 
   #game-container {
@@ -24,6 +43,7 @@
     max-width: 600px;
     box-shadow: 0 0 15px rgba(0,0,0,0.2);
     position: relative;
+    display: none;
   }
 
   h1 {
@@ -88,8 +108,46 @@
     box-shadow: 0 0 10px rgba(0,0,0,0.3);
   }
 
-  #musicBtn:hover {
-    background: #f5f5f5;
+  #leaderboardBtn {
+    position: fixed;
+    bottom: 15px;
+    left: 15px;
+    background: rgba(255,255,255,0.8);
+    color: #333;
+    border: none;
+    font-size: 20px;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  }
+
+  #leaderboardWindow {
+    position: fixed;
+    bottom: 80px;
+    left: 15px;
+    width: 300px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    display: none;
+    z-index: 5;
+    padding: 15px;
+  }
+
+  #leaderboardWindow h3 {
+    margin-top: 0;
+    text-align: center;
+  }
+
+  #closeLeaderboard {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    color: #999;
   }
 
   input {
@@ -104,27 +162,36 @@
   table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 15px;
   }
 
   th, td {
     border-bottom: 1px solid #ccc;
-    padding: 8px;
+    padding: 5px;
+    font-size: 14px;
   }
 
   th {
     background-color: #f5f5f5;
   }
-
-  .leaderboard {
-    text-align: left;
-  }
 </style>
 </head>
 <body>
 
+<!-- Transición inicial -->
+<div id="transition-screen">Juego para Biología</div>
+
 <!-- Botón de música -->
 <button id="musicBtn">🔊</button>
+
+<!-- Botón para ver leaderboard -->
+<button id="leaderboardBtn">🏆</button>
+
+<!-- Ventana flotante de leaderboard -->
+<div id="leaderboardWindow">
+  <span id="closeLeaderboard">✖</span>
+  <h3>Leaderboard</h3>
+  <div id="liveLeaderboard"></div>
+</div>
 
 <div id="game-container">
   <h1 id="title">Juego para Biología</h1>
@@ -145,14 +212,12 @@
     <button id="nextBtn" class="btn" style="display:none;">Siguiente</button>
   </div>
 
-  <!-- Tabla de puntuaciones -->
-  <div id="leaderboard" class="leaderboard" style="display:none;"></div>
+  <!-- Leaderboard final -->
+  <div id="finalLeaderboard" style="display:none;"></div>
 </div>
 
-<!-- 🎵 Música de fondo -->
-<audio id="bg-music" 
-  src="https://www.bensound.com/bensound-music/bensound-sunny.mp3" 
-  autoplay loop></audio>
+<!-- 🎵 Música -->
+<audio id="bg-music" src="https://www.bensound.com/bensound-music/bensound-sunny.mp3" autoplay loop></audio>
 
 <script>
 const questions = [
@@ -175,6 +240,8 @@ let username = "";
 let startTime = 0;
 let endTime = 0;
 
+const transitionScreen = document.getElementById("transition-screen");
+const gameContainer = document.getElementById("game-container");
 const startScreen = document.getElementById("start-screen");
 const startBtn = document.getElementById("startBtn");
 const usernameInput = document.getElementById("username");
@@ -184,13 +251,28 @@ const questionImg = document.getElementById("question-img");
 const optionsDiv = document.getElementById("options");
 const feedback = document.getElementById("feedback");
 const nextBtn = document.getElementById("nextBtn");
-const leaderboardDiv = document.getElementById("leaderboard");
+const finalLeaderboard = document.getElementById("finalLeaderboard");
+const leaderboardBtn = document.getElementById("leaderboardBtn");
+const leaderboardWindow = document.getElementById("leaderboardWindow");
+const closeLeaderboard = document.getElementById("closeLeaderboard");
+const liveLeaderboard = document.getElementById("liveLeaderboard");
 const music = document.getElementById("bg-music");
 const musicBtn = document.getElementById("musicBtn");
 
 startBtn.addEventListener("click", startGame);
 nextBtn.addEventListener("click", nextQuestion);
 musicBtn.addEventListener("click", toggleMusic);
+leaderboardBtn.addEventListener("click", toggleLeaderboard);
+closeLeaderboard.addEventListener("click", () => leaderboardWindow.style.display = "none");
+
+// Animación inicial
+setTimeout(() => {
+  transitionScreen.style.opacity = 0;
+  setTimeout(() => {
+    transitionScreen.style.display = "none";
+    gameContainer.style.display = "block";
+  }, 1000);
+}, 1500);
 
 function startGame() {
   username = usernameInput.value.trim();
@@ -228,6 +310,8 @@ function showQuestion() {
     btn.onclick = () => selectOption(index, currentQuestion.correct);
     optionsDiv.appendChild(btn);
   });
+
+  updateLiveLeaderboard();
 }
 
 function selectOption(selectedIndex, correctIndex) {
@@ -256,35 +340,30 @@ function nextQuestion() {
 
 function endGame() {
   endTime = Date.now();
-  const total = shuffledQuestions.length;
-  const percentage = Math.round((score / total) * 100);
+  const percentage = Math.round((score / questions.length) * 100);
   const timeTaken = ((endTime - startTime) / 1000).toFixed(1);
 
   saveScore(username, score, percentage, timeTaken);
-  showLeaderboard();
+  showFinalLeaderboard();
+  updateLiveLeaderboard();
 }
 
-// Guardar puntuación en localStorage
 function saveScore(name, score, percentage, time) {
   let leaderboard = JSON.parse(localStorage.getItem("bioLeaderboard")) || [];
   leaderboard.push({ name, score, percentage, time });
   leaderboard.sort((a, b) => b.score - a.score || a.time - b.time);
-  leaderboard = leaderboard.slice(0, 5); // Top 5
   localStorage.setItem("bioLeaderboard", JSON.stringify(leaderboard));
 }
 
-// Mostrar tabla de posiciones
-function showLeaderboard() {
+function showFinalLeaderboard() {
   const leaderboard = JSON.parse(localStorage.getItem("bioLeaderboard")) || [];
   questionContainer.style.display = "none";
-  leaderboardDiv.style.display = "block";
+  finalLeaderboard.style.display = "block";
 
   let table = `
     <h2>🏁 Resultados finales</h2>
-    <p>${username}, acertaste <strong>${score}</strong> de <strong>${questions.length}</strong> preguntas.</p>
+    <p>${username}, acertaste <strong>${score}</strong> de <strong>${questions.length}</strong>.</p>
     <h3>Puntaje: ${Math.round((score / questions.length) * 100)}%</h3>
-    <p>Tiempo total: ${((endTime - startTime) / 1000).toFixed(1)} segundos</p>
-    <h3>🏆 Leaderboard</h3>
     <table>
       <tr><th>Jugador</th><th>Puntaje</th><th>%</th><th>Tiempo (s)</th></tr>
   `;
@@ -292,10 +371,23 @@ function showLeaderboard() {
     table += `<tr><td>${p.name}</td><td>${p.score}</td><td>${p.percentage}%</td><td>${p.time}</td></tr>`;
   });
   table += `</table><button class="btn" onclick="location.reload()">Jugar otra vez</button>`;
-  leaderboardDiv.innerHTML = table;
+  finalLeaderboard.innerHTML = table;
 }
 
-// 🎵 Control de sonido
+function updateLiveLeaderboard() {
+  const leaderboard = JSON.parse(localStorage.getItem("bioLeaderboard")) || [];
+  let table = `<table><tr><th>Jugador</th><th>%</th></tr>`;
+  leaderboard.forEach(p => {
+    table += `<tr><td>${p.name}</td><td>${p.percentage}%</td></tr>`;
+  });
+  table += `</table>`;
+  liveLeaderboard.innerHTML = table;
+}
+
+function toggleLeaderboard() {
+  leaderboardWindow.style.display = leaderboardWindow.style.display === "block" ? "none" : "block";
+}
+
 function toggleMusic() {
   if (music.paused) {
     music.play();
